@@ -90,19 +90,70 @@ i l'ús de blocs then() a JavaScript:
   d'enviar el formulari i al seu lloc, s'obri una finestra nova amb l'URL definida a l'ACTION del formulari, recordeu que el SELECT que hem creat contralarà aquest ACTION en canviar.
   */
 
+import { event } from "jquery";
+
 //1 modifyPageNumberInput
     function modifyPageNumberInput(){
         //Put your code here
+        const input = document.getElementById('pageNumber');
+        input.addEventListener('change', event => {
+            if (input.value) {
+                fetchSWAPIPeople(input.value)
+            }
+        });
     }
 
     //2 fetchSWAPIPeople
-    function fetchSWAPIPeople(pageNumber) {
+    function fetchSWAPIPeople(page_number) {
         //Put your code here
-    }
+        const form = document.getElementById('myContent');
+        form.classList.add('hidden');
+        const loader = document.getElementById('loader')
+        loader.classList.remove('hidden');
+        const text = document.getElementById('loading-text');
+        text.textContent = 'loading...';
+        
+        fetch(`https://swapi.dev/api/people/?page=${page_number}`)
+            .then(response => {
+                localStorage.setItem(`swapi_${page_number}`, JSON.stringify(response));
+                return response.json();
+            })
+            .then(data => {        
+                const select = document.createElement('select');
+                select.id = 'characterSelect';
+                data.results.forEach(character => {
+                    const option = document.createElement('option');
+                    option.textContent = character.name;
+                    option.value = character.url;
+                    select.appendChild(option);
+                });
+
+                const selectContainer = document.getElementById('selectContainer');
+                selectContainer.innerHTML = '';
+                selectContainer.appendChild(select);
+
+                loader.classList.add('hidden');
+                form.classList.remove('hidden');
+
+                select.addEventListener('change', event => {
+                    form.action = select.value;
+                    form.dispatchEvent(new Event('change'));
+                    });
+            })
+        }
 
     // 3 modifySendFormButton
     function modifySendFormButton(){
         //Put your code here
+
+        const button = document.getElementById('sendForm');
+        const form = document.getElementById('myContent');
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            if(form && form.action) {
+                window.open(form.action, '_blank')
+            }
+        });
     }
 /**
  *  Do not modify this DOMContentLoaded script
